@@ -4,26 +4,23 @@
     <h1>Create Meal Plan</h1>
 
     <form method="post" action="/recipes/export" id="recipes-export-form">
-      <label>Language</label><br />
-      <select name="lang">
-        <option value="en">English</option>
-        <option value="cs">Czech</option>
-      </select>
-      <br /><br />
-
-      {% for category in ["breakfast", "lunch", "dinner", "snack"] %}
-      <h2>{{ category | capitalize }}</h2>
-      <ul>
-        {% for r in recipes_by_category.get(category, []) %}
-        <li>
-          <label>
-            <input type="checkbox" value="{{ r[0] }}" class="recipe-checkbox" />
-            <strong>{{ r[1] }}</strong>
-          </label>
-        </li>
+      <div class="recipes-grid">
+        {% for category in ["breakfast", "lunch", "dinner", "snack"] %}
+        <section class="recipe-column">
+          <h2>{{ category | capitalize }}</h2>
+          <ul class="list-links recipe-scroll-list no-bullets">
+            {% for r in recipes_by_category.get(category, []) %}
+            <li>
+              <label class="list-link">
+                <input type="checkbox" value="{{ r[0] }}" class="recipe-checkbox" />
+                {{ r[1] }}
+              </label>
+            </li>
+            {% endfor %}
+          </ul>
+        </section>
         {% endfor %}
-      </ul>
-      {% endfor %}
+      </div>
       <input type="hidden" name="recipe_ids" id="recipe-ids" />
       <button type="submit">Export selected recipes</button>
     </form>
@@ -40,5 +37,5 @@
       });
     </script>
 
-    <a href="/">Back</a>
+    <a href="/" class="nav-link-small">Back</a>
 {% endblock %}

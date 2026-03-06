@@ -1,14 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="/static/style.css" />
-    <title>{% block title %}NutriCoach{% endblock %}</title>
+    <title>{% block title %}MealPlan Pro{% endblock %}</title>
   </head>
   <body>
     {% if not hide_home %}
-    <p><a href="/">Home</a></p>
-    {% endif %}
-    {% block content %}{% endblock %}
+    <p><a href="/" class="nav-link-small">Home</a></p>
+    {% endif %} {% block content %}{% endblock %}
   </body>
 </html>

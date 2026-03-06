@@ -6,7 +6,7 @@ from app.routes.ingredients import router as ingredients_router
 from app.routes.recipes import router as recipes_router
 
 
-app = FastAPI(title="NutriCoach")
+app = FastAPI(title="MealPlan Pro")
 
 templates = Jinja2Templates(directory="app/templates")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")

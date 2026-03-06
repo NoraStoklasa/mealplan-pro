@@ -71,6 +71,36 @@ def search_ingredients(q: str = ""):
     return JSONResponse({"results": names})
 
 
+@router.post("/autofill")
+def autofill_ingredient(name: str = Form("")):
+    query = name.strip()
+    if not query:
+        return JSONResponse({"found": False, "message": "Ingredient name is required."})
+    try:
+        food_data = search_ingredient(query)
+    except Exception:
+        return JSONResponse(
+            {"found": False, "message": "Auto-fill failed. Enter values manually."}
+        )
+    if not food_data:
+        return JSONResponse(
+            {"found": False, "message": "No match found. Enter values manually."}
+        )
+    nutrients = extract_nutrients(food_data)
+    portion_g = extract_portion(food_data)
+    return JSONResponse(
+        {
+            "found": True,
+            "portion_g": portion_g,
+            "energy_kj": nutrients.get("energy_kj"),
+            "protein_g": nutrients.get("protein_g"),
+            "carbs_g": nutrients.get("carbs_g"),
+            "fat_g": nutrients.get("fat_g"),
+            "fibre_g": nutrients.get("fibre_g"),
+        }
+    )
+
+
 @router.get("/{ingredient_id}")
 def ingredient_detail(request: Request, ingredient_id: int):
     with sqlite3.connect(DB_PATH) as conn:
@@ -133,33 +163,3 @@ def update_ingredient(
             ),
         )
     return RedirectResponse(url=f"/ingredients/{ingredient_id}", status_code=303)
-
-
-@router.post("/autofill")
-def autofill_ingredient(name: str = Form("")):
-    query = name.strip()
-    if not query:
-        return JSONResponse({"found": False, "message": "Ingredient name is required."})
-    try:
-        food_data = search_ingredient(query)
-    except Exception:
-        return JSONResponse(
-            {"found": False, "message": "Auto-fill failed. Enter values manually."}
-        )
-    if not food_data:
-        return JSONResponse(
-            {"found": False, "message": "No match found. Enter values manually."}
-        )
-    nutrients = extract_nutrients(food_data)
-    portion_g = extract_portion(food_data)
-    return JSONResponse(
-        {
-            "found": True,
-            "portion_g": portion_g,
-            "energy_kj": nutrients.get("energy_kj"),
-            "protein_g": nutrients.get("protein_g"),
-            "carbs_g": nutrients.get("carbs_g"),
-            "fat_g": nutrients.get("fat_g"),
-            "fibre_g": nutrients.get("fibre_g"),
-        }
-    )

@@ -4,18 +4,20 @@
     <h1>Ingredients</h1>
 
     <p>
-      <a href="/ingredients/new">➕ Add ingredient</a>
+      <a href="/ingredients/new" class="add-link">➕ Add ingredient</a>
     </p>
 
-    <ul>
-      {% for ingredient in ingredients %}
-      <li>
-        <a href="/ingredients/{{ ingredient[0] }}">
-          {{ ingredient[1] }}
-        </a>
-      </li>
-      {% endfor %}
-    </ul>
+    <section class="ingredients-column">
+      <ul class="list-links ingredients-scroll-list">
+        {% for ingredient in ingredients %}
+        <li>
+          <a href="/ingredients/{{ ingredient[0] }}" class="list-link">
+            {{ ingredient[1] }}
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
 
-    <a href="/">Back</a>
+    <a href="/" class="nav-link-small">Back</a>
 {% endblock %}

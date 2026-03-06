@@ -1,12 +1,12 @@
-# NutriCoach
+# MealPlan Pro
 
-NutriCoach is a small Python web application designed to help nutritionists **manage ingredients**, **calculate recipe nutrition**, and **scale meals to a target energy value**.
+MealPlan Pro is a small Python web application designed to help nutritionists **manage ingredients**, **calculate recipe nutrition**, and **scale meals to a target energy value**.
 
 The project focuses on accuracy, flexibility, and simplicity, following realistic professional nutrition workflows.
 
 ---
 
-## What NutriCoach can do (v1)
+## What MealPlan Pro can do (v1)
 
 ### Ingredient management
 
@@ -49,13 +49,13 @@ This is useful for portion control and meal planning.
 ---
 
 
-## What NutriCoach does NOT do (by design)
+## What MealPlan Pro does NOT do (by design)
 
 - It does not automatically optimise macros
 - It does not make dietary decisions
 - It does not replace a nutritionist’s judgement
 
-NutriCoach is a **calculation and data tool**, not an AI nutrition advisor.
+MealPlan Pro is a **calculation and data tool**, not an AI nutrition advisor.
 
 ---
 
@@ -124,5 +124,5 @@ NutriCoach is a **calculation and data tool**, not an AI nutrition advisor.
 
 ## Status
 
-**NutriCoach v1**
+**MealPlan Pro v1**
 Stable, usable foundation focused on correctness and clarity.

@@ -1,14 +1,13 @@
-{% extends "base.html" %}
-{% block title %}NutriCoach{% endblock %}
-{% block content %}
-    <h1>Welcome to NutriCoach</h1>
+{% extends "base.html" %} {% block title %}MealPlan Pro{% endblock %} {% block
+content %}
+<h1>Welcome to MealPlan Pro</h1>
 
-    <p><a href="/ingredients">Ingredients</a></p>
-    <p>Add and manage ingredients</p>
+<p><a href="/ingredients" class="button-link">Ingredients</a></p>
+<p class="note">Add and manage ingredients</p>
 
-    <p><a href="/recipes">Recipes</a></p>
-    <p>Create and manage recipes</p>
+<p><a href="/recipes" class="button-link">Recipes</a></p>
+<p class="note">Create and manage recipes</p>
 
-    <p><a href="/recipes/meal-plan">Create Meal Plan</a></p>
-    <p>Select recipes and export</p>
+<p><a href="/recipes/meal-plan" class="button-link">Create Meal Plan</a></p>
+<p class="note">Select recipes and export</p>
 {% endblock %}

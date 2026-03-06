@@ -4,20 +4,22 @@
     <h1>Recipes</h1>
 
     <p>
-      <a href="/recipes/new">➕ Add recipe</a>
+      <a href="/recipes/new" class="add-link">➕ Add recipe</a>
     </p>
 
-    {% for category in ["breakfast", "lunch", "dinner", "snack"] %}
-    <h2>{{ category | capitalize }}</h2>
-    <ul>
-      {% for r in recipes_by_category.get(category, []) %}
-      <li>
-        <a href="/recipes/{{ r[0] }}">
-          <strong>{{ r[1] }}</strong>
-        </a>
-      </li>
+    <div class="recipes-grid">
+      {% for category in ["breakfast", "lunch", "dinner", "snack"] %}
+      <section class="recipe-column">
+        <h2>{{ category | capitalize }}</h2>
+        <ul class="list-links recipe-scroll-list">
+          {% for r in recipes_by_category.get(category, []) %}
+          <li>
+            <a href="/recipes/{{ r[0] }}" class="list-link">{{ r[1] }}</a>
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
       {% endfor %}
-    </ul>
-    {% endfor %}
-    <a href="/">Back</a>
+    </div>
+    <a href="/" class="nav-link-small">Back</a>
 {% endblock %}

@@ -88,7 +88,7 @@ def create_recipe_post(
 
 
 @router.post("/export")
-def export_recipes(request: Request, recipe_ids: str = Form(""), lang: str = Form("en")):
+def export_recipes(request: Request, recipe_ids: str = Form("")):
     ids = []
     for rid in recipe_ids.split(","):
         rid = rid.strip()
@@ -115,13 +115,12 @@ def export_recipes(request: Request, recipe_ids: str = Form(""), lang: str = For
         recipes, lambda r: r["category"], lambda r: r["name"]
     )
 
-    template_name = "recipes_export_cs.html" if lang == "cs" else "recipes_export.html"
     return templates.TemplateResponse(
-        template_name,
+        "recipes_export.html",
         {
             "request": request,
             "recipes_by_category": recipes_by_category,
-            "lang": lang,
+            "lang": "en",
         },
     )
 
@@ -291,7 +290,7 @@ async def export_docx(request: Request):
 
     return FileResponse(
         temp_path,
-        filename="nutricoach_export.docx",
+        filename="mealplan_pro_export.docx",
         media_type=(
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         ),

@@ -15,7 +15,7 @@ LABELS = {
         "category": "Category",
         "recipes": "Recipes",
         "scale": "Scale selected recipes",
-        "export_title": "NutriCoach Export",
+        "export_title": "MealPlan Pro Export",
         "preview_title": "Scaled recipes (preview)",
     },
     "cs": {
@@ -34,7 +34,7 @@ LABELS = {
         "category": "Kategorie",
         "recipes": "Recepty",
         "scale": "Přepočítat vybrané recepty",
-        "export_title": "NutriCoach Export",
+        "export_title": "MealPlan Pro Export",
         "preview_title": "Náhled přepočítaných receptů",
     },
 }
