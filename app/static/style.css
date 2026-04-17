@@ -108,8 +108,10 @@ a:hover {
   border-radius: 6px;
   text-decoration: none;
   margin-right: 8px;
+  font-size: 16px;
   font-weight: 600;
   letter-spacing: 0.2px;
+  line-height: 1.2;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   transition:
     background 0.2s ease,
@@ -132,6 +134,19 @@ a:hover {
 .button-link:focus-visible {
   outline: 2px solid #66e3ef;
   outline-offset: 2px;
+}
+
+/* Normalize button elements using link-button styling */
+button.button-link {
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+  line-height: 1.2;
+  margin-right: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
 }
 
 /* Native buttons */

@@ -17,6 +17,10 @@ LABELS = {
         "scale": "Scale selected recipes",
         "export_title": "MealPlan Pro Export",
         "preview_title": "Scaled recipes (preview)",
+        "breakfast": "Breakfast",
+        "lunch": "Lunch",
+        "dinner": "Dinner",
+        "snack": "Snacks",
     },
     "cs": {
         "ingredients": "Suroviny",
@@ -36,5 +40,9 @@ LABELS = {
         "scale": "Přepočítat vybrané recepty",
         "export_title": "MealPlan Pro Export",
         "preview_title": "Náhled přepočítaných receptů",
+        "breakfast": "Snídaně",
+        "lunch": "Oběd",
+        "dinner": "Večeře",
+        "snack": "Svačiny",
     },
 }

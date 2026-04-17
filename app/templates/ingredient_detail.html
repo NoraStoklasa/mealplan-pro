@@ -64,5 +64,11 @@
       <button type="submit">Save</button>
     </form>
 
-    <a href="/ingredients" class="nav-link-small">Back to ingredients</a>
+    <p>
+      <form method="post" action="/ingredients/{{ ingredient_id }}/delete" style="display:inline;">
+        <button type="submit">Delete ingredient</button>
+      </form>
+
+    </p>
+    <a href="/ingredients" class="nav-link-small">Back</a>
 {% endblock %}

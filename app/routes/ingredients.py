@@ -127,7 +127,7 @@ def ingredient_detail(request: Request, ingredient_id: int):
     }
     return templates.TemplateResponse(
         "ingredient_detail.html",
-        {"request": request, "ingredient": ingredient},
+        {"request": request, "ingredient": ingredient, "ingredient_id": ingredient_id},
     )
 
 
@@ -163,3 +163,11 @@ def update_ingredient(
             ),
         )
     return RedirectResponse(url=f"/ingredients/{ingredient_id}", status_code=303)
+
+
+@router.post("/{ingredient_id}/delete")
+def delete_ingredient_post(ingredient_id: int):
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM ingredients WHERE id = ?", (ingredient_id,))
+    return RedirectResponse(url="/ingredients", status_code=303)

@@ -32,10 +32,10 @@
 <p>
   <label for="lang-select"><strong>Language:</strong></label>
   <select id="lang-select">
-    <option value="en" {% if lang == "en" %}selected{% endif %}>
+    <option value="en" {% if lang="" ="en" %}selected{% endif %}>
       English
     </option>
-    <option value="cs" {% if lang == "cs" %}selected{% endif %}>Czech</option>
+    <option value="cs" {% if lang="" ="cs" %}selected{% endif %}>Czech</option>
   </select>
 </p>
 
@@ -145,7 +145,20 @@
 </form>
 
 <br />
-<a href="/recipes_export" class="nav-link-small">Back</a>
+<button
+  type="button"
+  onclick="history.back()"
+  class="nav-link-small"
+  style="
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    text-decoration: underline;
+  "
+>
+  Back
+</button>
 
 <script>
   const langSelect = document.getElementById('lang-select')

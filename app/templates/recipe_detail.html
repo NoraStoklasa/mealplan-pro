@@ -24,10 +24,11 @@
     </ul>
 
     <p>
-      <a href="/recipes/{{ recipe_id }}/edit" class="button-link">Edit recipe</a>
+      <a href="/recipes/{{ recipe_id }}/edit" class="add-link">Edit recipe</a>
       <form method="post" action="/recipes/{{ recipe_id }}/delete" style="display:inline;">
-        <button type="submit">Delete recipe</button>
+        <button type="submit" class="button-link">Delete recipe</button>
       </form>
-      <a href="/recipes" class="nav-link-small">Back</a>
+
     </p>
+    <a href="/recipes" class="nav-link-small">Back</a>
 {% endblock %}

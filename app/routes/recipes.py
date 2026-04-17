@@ -3,7 +3,12 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse, FileResponse, PlainTextResponse
 import tempfile
 from pathlib import Path
+import os
 from typing import List
+from docx.shared import Inches, RGBColor, Pt
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
 from recipes.recipe_database import (
     create_recipe,
     load_recipe,
@@ -248,49 +253,281 @@ async def export_docx(request: Request):
         recipes.append({"recipe": recipe, "nutrients": nutrients})
 
     doc = Document()
-    doc.add_heading(labels["export_title"], level=1)
+
+    # Add very light beige background to entire document
+    background = OxmlElement('w:background')
+    background.set(qn('w:color'), '#FEFCF7')
+    doc.element.insert(0, background)
+
+    # Add logo to header (appears on all pages)
+    section = doc.sections[0]
+    header = section.header
+    header_para = header.paragraphs[0]
+    header_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+    logo_path = Path("app/logos/logo.png")
+    if logo_path.exists():
+        try:
+            logo_run = header_para.add_run()
+            logo_run.add_picture(str(logo_path), width=Inches(0.8))
+        except Exception:
+            pass
+
     if client_name:
-        doc.add_paragraph(f"{labels['client']}: {client_name}")
+        client_heading = doc.add_heading(client_name, level=1)
+        # Set client name heading to dark purple
+        for run in client_heading.runs:
+            run.font.color.rgb = RGBColor(75, 0, 130)
+        client_heading.paragraph_format.space_before = 0
+        client_heading.paragraph_format.space_after = 18
+        client_heading.paragraph_format.line_spacing = 1.0
 
+    # Group recipes by meal type
+    meal_types = {"breakfast": [], "lunch": [], "dinner": [], "snack": []}
     for item in recipes:
-        recipe = item["recipe"]
-        nutrients = item["nutrients"]
-        doc.add_heading(recipe.get("name", "Recipe"), level=2)
-        doc.add_paragraph(f"Category: {recipe.get('category', '')}")
+        category = item["recipe"].get("category", "").lower()
+        if category in meal_types:
+            meal_types[category].append(item)
 
-        image_path = recipe.get("image_path")
-        if image_path and Path(image_path).exists():
-            try:
-                doc.add_picture(image_path, width=None)
-            except Exception:
-                pass
+    # Display recipes grouped by meal type with headers
+    meal_type_labels = {
+        "breakfast": labels.get("breakfast", "Breakfast"),
+        "lunch": labels.get("lunch", "Lunch"),
+        "dinner": labels.get("dinner", "Dinner"),
+        "snack": labels.get("snack", "Snacks"),
+    }
 
-        doc.add_paragraph(f"{labels['ingredients']}:")
-        for ing in recipe.get("ingredients", []):
-            doc.add_paragraph(
-                f"- {ing.get('name', '')} – {ing.get('portion_g', 0)} g",
-                style="List Bullet",
-            )
+    for meal_type in ["breakfast", "lunch", "dinner", "snack"]:
+        if meal_types[meal_type]:
+            heading = doc.add_heading(meal_type_labels[meal_type], level=0)
+            # Set heading to dark purple and increase size
+            for run in heading.runs:
+                run.font.color.rgb = RGBColor(75, 0, 130)
+                run.font.size = Pt(24)
+            heading.paragraph_format.space_before = 12
+            heading.paragraph_format.space_after = 12
+            heading.paragraph_format.line_spacing = 1.0
+            heading.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-        instructions = recipe.get("instructions") or ""
-        if instructions:
-            doc.add_paragraph(f"{labels['instructions']}:")
-            doc.add_paragraph(instructions)
+            # Add purple bottom border to heading
+            pPr = heading._element.get_or_add_pPr()
+            pBdr = OxmlElement('w:pBdr')
+            bottom = OxmlElement('w:bottom')
+            bottom.set(qn('w:val'), 'single')
+            bottom.set(qn('w:sz'), '24')
+            bottom.set(qn('w:space'), '1')
+            bottom.set(qn('w:color'), '4B0082')
+            pBdr.append(bottom)
+            pPr.append(pBdr)
 
-        doc.add_paragraph(f"{labels['nutrition_summary']}:")
-        doc.add_paragraph(f"{labels['energy']}: {nutrients['energy_kj']} kJ")
-        doc.add_paragraph(f"{labels['protein']}: {nutrients['protein_g']} g")
-        doc.add_paragraph(f"{labels['carbs']}: {nutrients['carbs_g']} g")
-        doc.add_paragraph(f"{labels['fat']}: {nutrients['fat_g']} g")
-        doc.add_paragraph(f"{labels['fibre']}: {nutrients['fibre_g']} g")
+            for item in meal_types[meal_type]:
+                recipe = item["recipe"]
+                nutrients = item["nutrients"]
+
+                # Create a 2-column table with 1 row
+                table = doc.add_table(rows=1, cols=2)
+                table.autofit = False
+                table.allow_autofit = False
+
+                # Left cell for recipe content
+                left_cell = table.rows[0].cells[0]
+                right_cell = table.rows[0].cells[1]
+
+                # Add recipe name in left cell
+                recipe_name_para = left_cell.paragraphs[0]
+                recipe_name_run = recipe_name_para.add_run(recipe.get("name", "Recipe"))
+                recipe_name_run.bold = True
+                recipe_name_run.font.color.rgb = RGBColor(75, 0, 130)
+                recipe_name_run.font.size = Pt(13)
+                recipe_name_para.paragraph_format.space_before = Pt(5)
+                recipe_name_para.paragraph_format.space_after = Pt(5)
+                recipe_name_para.paragraph_format.line_spacing = 1.0
+
+                # Remove spacing before table by accessing the paragraph before it
+                tbl_element = table._element
+                p_before = tbl_element.getprevious()
+                if p_before is not None:
+                    pPr = p_before.get_or_add_pPr()
+                    spacing = pPr.find(qn('w:spacing'))
+                    if spacing is not None:
+                        spacing.set(qn('w:after'), '0')
+                    else:
+                        spacing = OxmlElement('w:spacing')
+                        spacing.set(qn('w:after'), '0')
+                        spacing.set(qn('w:line'), '240')
+                        spacing.set(qn('w:lineRule'), 'auto')
+                        pPr.append(spacing)
+
+                # Remove table borders (make lines invisible)
+                tbl = table._element
+                tblPr = tbl.tblPr
+                if tblPr is None:
+                    tblPr = OxmlElement('w:tblPr')
+                    tbl.insert(0, tblPr)
+
+                # Add table borders element with no borders
+                tblBorders = OxmlElement('w:tblBorders')
+                for border_name in ['top', 'left', 'bottom', 'right', 'insideH', 'insideV']:
+                    border = OxmlElement(f'w:{border_name}')
+                    border.set(qn('w:val'), 'none')
+                    border.set(qn('w:sz'), '0')
+                    border.set(qn('w:space'), '0')
+                    border.set(qn('w:color'), 'auto')
+                    tblBorders.append(border)
+
+                # Remove existing borders if any
+                for existing in tblPr.findall(qn('w:tblBorders')):
+                    tblPr.remove(existing)
+                tblPr.append(tblBorders)
+
+                # Set minimal cell margins
+                tblCellMar = OxmlElement('w:tblCellMar')
+                for margin_name in ['top', 'left', 'bottom', 'right']:
+                    margin = OxmlElement(f'w:{margin_name}')
+                    margin.set(qn('w:w'), '10')
+                    margin.set(qn('w:type'), 'dxa')
+                    tblCellMar.append(margin)
+
+                for existing in tblPr.findall(qn('w:tblCellMar')):
+                    tblPr.remove(existing)
+                tblPr.append(tblCellMar)
+
+                # Set row height
+                for row in table.rows:
+                    row.height = Inches(0.3)
+
+                # Set column widths
+                table.columns[0].width = Inches(3.5)
+                table.columns[1].width = Inches(2)
+
+                # Left cell for recipe content is already set above as table.rows[1].cells[0]
+                # Add ingredients
+                left_para = left_cell.add_paragraph(f"{labels['ingredients']}:")
+                left_para.style = 'Normal'
+                left_para.paragraph_format.space_before = 0
+                left_para.paragraph_format.space_after = 0
+                left_para.paragraph_format.line_spacing = 1.0
+                # Make "Ingredients:" bold
+                ing_run = left_para.runs[0]
+                ing_run.bold = True
+                for ing in recipe.get("ingredients", []):
+                    ing_para = left_cell.add_paragraph(
+                        f"{ing.get('name', '')} – {ing.get('portion_g', 0)} g",
+                        style="List Bullet",
+                    )
+                    ing_para.paragraph_format.space_before = Pt(5)
+                    ing_para.paragraph_format.space_after = Pt(3)
+                    ing_para.paragraph_format.line_spacing = 1.0
+
+                # Add instructions
+                instructions = recipe.get("instructions") or ""
+                if instructions:
+                    instr_para = left_cell.add_paragraph(f"{labels['instructions']}:")
+                    instr_para.paragraph_format.space_before = Pt(5)
+                    instr_para.paragraph_format.space_after = Pt(3)
+                    instr_para.paragraph_format.line_spacing = 1.0
+                    instr_para.runs[0].bold = True
+                    instr_content = left_cell.add_paragraph(instructions)
+                    instr_content.paragraph_format.space_before = 0
+                    instr_content.paragraph_format.space_after = 0
+                    instr_content.paragraph_format.line_spacing = 1.0
+
+                # Add nutrition summary
+                nutrition_para = left_cell.add_paragraph(f"{labels['nutrition_summary']}:")
+                nutrition_para.paragraph_format.space_before = Pt(5)
+                nutrition_para.paragraph_format.space_after = Pt(3)
+                nutrition_para.paragraph_format.line_spacing = 1.0
+                nutrition_para.runs[0].bold = True
+
+                energy_para = left_cell.add_paragraph(f"{labels['energy']}: {nutrients['energy_kj']} kJ")
+                energy_para.paragraph_format.space_before = 0
+                energy_para.paragraph_format.space_after = 0
+                energy_para.paragraph_format.line_spacing = 1.0
+
+                protein_para = left_cell.add_paragraph(f"{labels['protein']}: {nutrients['protein_g']} g")
+                protein_para.paragraph_format.space_before = 0
+                protein_para.paragraph_format.space_after = 0
+                protein_para.paragraph_format.line_spacing = 1.0
+
+                carbs_para = left_cell.add_paragraph(f"{labels['carbs']}: {nutrients['carbs_g']} g")
+                carbs_para.paragraph_format.space_before = 0
+                carbs_para.paragraph_format.space_after = 0
+                carbs_para.paragraph_format.line_spacing = 1.0
+
+                fat_para = left_cell.add_paragraph(f"{labels['fat']}: {nutrients['fat_g']} g")
+                fat_para.paragraph_format.space_before = 0
+                fat_para.paragraph_format.space_after = 0
+                fat_para.paragraph_format.line_spacing = 1.0
+
+                fibre_para = left_cell.add_paragraph(f"{labels['fibre']}: {nutrients['fibre_g']} g")
+                fibre_para.paragraph_format.space_before = 0
+                fibre_para.paragraph_format.space_after = 0
+                fibre_para.paragraph_format.line_spacing = 1.0
+
+                # Right cell for image
+                right_cell = table.rows[0].cells[1]
+
+                # Try to find recipe-specific image, fall back to cheesecake.jpg
+                project_dir = Path(__file__).parent.parent.parent
+                recipe_name = recipe.get("name", "").replace(" ", "_").lower()
+                recipe_image_path = project_dir / f"images/{recipe_name}.jpg"
+                default_image_path = project_dir / "images/cheesecake.jpg"
+
+                image_to_use = None
+                if recipe_image_path.exists():
+                    image_to_use = recipe_image_path
+                elif default_image_path.exists():
+                    image_to_use = default_image_path
+
+                if image_to_use:
+                    try:
+                        image_para = right_cell.add_paragraph()
+                        image_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                        run = image_para.add_run()
+                        run.add_picture(str(image_to_use), width=Inches(1.8))
+                    except Exception:
+                        pass
+
+                # Add spacing after each recipe
+                spacing_para = doc.add_paragraph()
+                spacing_para.paragraph_format.space_before = 12
+                spacing_para.paragraph_format.space_after = 0
+
+    # Add page numbers to footer
+    section = doc.sections[0]
+    footer = section.footer
+    footer_para = footer.paragraphs[0]
+    footer_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+    # Create page number field
+    run = footer_para.add_run()
+    fldChar1 = OxmlElement('w:fldChar')
+    fldChar1.set(qn('w:fldCharType'), 'begin')
+
+    instrText = OxmlElement('w:instrText')
+    instrText.set(qn('xml:space'), 'preserve')
+    instrText.text = 'PAGE'
+
+    fldChar2 = OxmlElement('w:fldChar')
+    fldChar2.set(qn('w:fldCharType'), 'end')
+
+    run._r.append(fldChar1)
+    run._r.append(instrText)
+    run._r.append(fldChar2)
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
         temp_path = tmp.name
     doc.save(temp_path)
 
+    # Create filename from client name or use default
+    if client_name:
+        filename = client_name.replace(" ", "_") + "_mealplan.docx"
+    else:
+        filename = "mealplan_pro_export.docx"
+
     return FileResponse(
         temp_path,
-        filename="mealplan_pro_export.docx",
+        filename=filename,
         media_type=(
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         ),
